@@ -68,7 +68,7 @@ button:focus-visible {
 }
 
 .chat-container {
-  width: 350px;
+  width: 100vw;
   margin: auto;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -76,14 +76,6 @@ button:focus-visible {
   flex-direction: column;
   background: #f9f9f9;
   font-family: Arial, sans-serif;
-}
-
-.chatbox {
-  height: 400px;
-  overflow-y: auto;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
 }
 
 .user-msg,
@@ -111,18 +103,7 @@ button:focus-visible {
   margin-right: 8px;
 }
 
-.input-container {
-  display: flex;
-  padding: 10px;
-  border-top: 1px solid #ddd;
-}
 
-input {
-  flex: 1;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
 
 button {
   background: #0078ff;
@@ -131,4 +112,86 @@ button {
   padding: 10px;
   border-radius: 5px;
   cursor: pointer;
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(to bottom right, #455067, #282c34);
+  color: white;
+  padding: 20px;
+}
+
+.chat-box {
+  width: 90vw;
+  background: #cfcfcf;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  padding: 10px;
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.message {
+  display: flex;
+  align-items: center;
+  margin: 5px 0;
+  padding: 10px;
+  border-radius: 10px;
+  max-width: 75%;
+}
+
+.message.user {
+  background: #007bff;
+  align-self: flex-end;
+  color: white;
+}
+
+.message.bot {
+  background: #444;
+  align-self: flex-start;
+}
+
+.typing-indicator {
+  color: gray;
+  font-style: italic;
+  padding: 5px;
+}
+
+.input-box {
+  display: flex;
+  align-items: center;
+  width: 90vw;
+  background: #333333d9;
+  padding: 10px;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.input-box input {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 5px;
+  outline: none;
+  background: #cfcdcdc1;
+  color: white;
+}
+
+.input-box button {
+  background: #007bff;
+  border: none;
+  color: white;
+  padding: 8px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.input-box button:hover {
+  background: #0056b3;
 }
