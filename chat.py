@@ -1,54 +1,67 @@
-import socket
-import threading
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import random
+import nltk
+from nltk.stem import WordNetLemmatizer
+import string
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
-# Server setup
-HOST = '127.0.0.1'  # Localhost
-PORT = 12345         # Any open port number
+app = Flask(__name__)
+CORS(app)
 
-# List to keep track of all connected clients
-clients = []
+nltk.download('punkt')
+nltk.download('wordnet')
 
-def broadcast(message, sender_socket):
-    """Send message to all clients except the sender."""
-    for client in clients:
-        if client != sender_socket:
-            try:
-                client.send(message)
-            except:
-                # If the send fails, remove the client
-                clients.remove(client)
+with open('chatbot.txt', 'r', encoding='utf8', errors='ignore') as fin:
+    raw = fin.read().lower()
 
-def handle_client(client_socket):
-    """Handle individual client communication."""
-    while True:
-        try:
-            message = client_socket.recv(1024)
-            if message:
-                broadcast(message, client_socket)
-            else:
-                break
-        except:
-            break
+sent_tokens = nltk.sent_tokenize(raw)
+word_tokens = nltk.word_tokenize(raw)
 
-    # Remove client if disconnected
-    clients.remove(client_socket)
-    client_socket.close()
+lemmer = WordNetLemmatizer()
+def LemTokens(tokens):
+    return [lemmer.lemmatize(token) for token in tokens]
 
-def start_server():
-    """Initialize and run the server."""
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind((HOST, PORT))
-    server.listen(5)
-    print(f'Server started on {HOST}:{PORT}')
+remove_punct_dict = dict((ord(punct), None) for punct in string.punctuation)
+def LemNormalize(text):
+    return LemTokens(nltk.word_tokenize(text.lower().translate(remove_punct_dict)))
 
-    while True:
-        client_socket, client_address = server.accept()
-        print(f'New connection: {client_address}')
-        clients.append(client_socket)
+GREETING_INPUTS = ("hello", "hi", "greetings", "sup", "what's up", "hey")
+GREETING_RESPONSES = ["hi", "hey", "*nods*", "hi there", "hello"]
 
-        # Handle client communication in a new thread
-        thread = threading.Thread(target=handle_client, args=(client_socket,))
-        thread.start()
+def greeting(sentence):
+    for word in sentence.split():
+        if word.lower() in GREETING_INPUTS:
+            return random.choice(GREETING_RESPONSES)
+
+def chatbot_response(user_input):
+    sent_tokens.append(user_input)
+    TfidfVec = TfidfVectorizer(tokenizer=LemNormalize, stop_words='english')
+    tfidf = TfidfVec.fit_transform(sent_tokens)
+    vals = cosine_similarity(tfidf[-1], tfidf)
+    idx = vals.argsort()[0][-2]
+    flat = vals.flatten()
+    flat.sort()
+    req_tfidf = flat[-2]
+
+    if req_tfidf == 0:
+        response = "I am sorry, I don't understand you."
+    else:
+        response = sent_tokens[idx]
+
+    sent_tokens.pop(-1)
+    return response
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    user_input = request.json.get("message")
+    if greeting(user_input):
+        response = greeting(user_input)
+    else:
+        response = chatbot_response(user_input)
+    return jsonify({"response": response})
 
 if __name__ == "__main__":
-    start_server()
+    app.run(host='0.0.0.0', port=5000, debug=True)
